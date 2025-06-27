@@ -5,7 +5,8 @@ description = "Account management utilities for Solana programs"
 edition = "2021"
 
 [dependencies]
-# Path dependency on our common library  
+# Path dependencies - crypto-primitives is ONLY used by account-utils
+crypto-primitives = { path = "../crypto-primitives" }
 common = { path = "../common" }
 solana-program = { workspace = true }
 thiserror = { workspace = true }

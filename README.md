@@ -18,11 +18,19 @@ This is a sample Rust Solana program that demonstrates how to create and use mul
     │   ├── Cargo.toml
     │   └── src/
     │       └── lib.rs
-    ├── math-utils/               # Math utilities (depends on common)
+    ├── crypto-primitives/        # Cryptographic utilities (depends on common) - ISOLATED
     │   ├── Cargo.toml
     │   └── src/
     │       └── lib.rs
-    └── account-utils/            # Account utilities (depends on common)
+    ├── math-primitives/          # Mathematical primitives (depends on common)
+    │   ├── Cargo.toml
+    │   └── src/
+    │       └── lib.rs
+    ├── math-utils/               # Math utilities (depends on common + math-primitives)
+    │   ├── Cargo.toml
+    │   └── src/
+    │       └── lib.rs
+    └── account-utils/            # Account utilities (depends on common + crypto-primitives)
         ├── Cargo.toml
         └── src/
             └── lib.rs
@@ -30,15 +38,25 @@ This is a sample Rust Solana program that demonstrates how to create and use mul
 
 ## Dependency Structure
 
-The project demonstrates nested path dependencies:
+The project demonstrates **nested path dependencies with depth-2 dependencies** including **isolated dependencies**:
 
 ```
 my-solana-program
 ├── account-utils (path dependency)
+│   ├── crypto-primitives (path dependency) ⬅️ ISOLATED DEPTH-2 DEPENDENCY
+│   │   └── common (path dependency)
 │   └── common (path dependency)
-└── math-utils (path dependency)
-    └── common (path dependency)
+├── math-utils (path dependency)
+│   ├── math-primitives (path dependency) ⬅️ SHARED DEPTH-2 DEPENDENCY
+│   │   └── common (path dependency)
+│   └── common (path dependency)
+└── common (path dependency - direct)
 ```
+
+**Key Features**: 
+1. The main program does NOT directly import `math-primitives`, but gets it transitively through `math-utils`
+2. **ISOLATED DEPENDENCY**: Only `account-utils` imports `crypto-primitives` - neither the main program nor other libraries use it directly
+3. This demonstrates both **shared transitive dependencies** and **completely isolated dependencies** in the same project
 
 ### 1. Common Library (`libs/common`)
 - **Purpose**: Base utilities shared across all libraries
@@ -50,39 +68,77 @@ my-solana-program
   - Pubkey validation utilities
   - Basic validation functions
 
-### 2. Math Utils Library (`libs/math-utils`)
-- **Purpose**: Mathematical operations for token calculations
+### 2. Crypto Primitives Library (`libs/crypto-primitives`) - **ISOLATED DEPENDENCY**
+- **Purpose**: Cryptographic utilities specifically for account operations
+- **Dependencies**: `common` (path dependency)
+- **Used by**: **ONLY** `account-utils` (isolated dependency)
+- **Provides**:
+  - Cryptographic hashing utilities for account data
+  - Deterministic seed generation for PDA creation
+  - Address derivation utilities (vault addresses, metadata addresses)
+  - Account validation using cryptographic proofs
+  - Security utilities (entropy validation, security tokens)
+- **Key Feature**: This library is NEVER directly imported by the main program or other libraries
+
+### 3. Math Primitives Library (`libs/math-primitives`)
+- **Purpose**: Low-level mathematical primitives and constants
 - **Dependencies**: `common` (path dependency)
 - **Provides**:
-  - Token amount calculations with decimals
+  - Mathematical constants (basis points, precision values)
+  - Primitive operations (power of 10, square root, validation)
+  - Number theory utilities (GCD, LCM, modular arithmetic)
+  - Input validation for mathematical operations
+
+### 4. Math Utils Library (`libs/math-utils`)
+- **Purpose**: High-level mathematical operations for token calculations
+- **Dependencies**: `common`, `math-primitives` (both path dependencies)
+- **Provides**:
+  - Token amount calculations with decimals (using math-primitives)
   - Percentage and basis point calculations
   - Compound interest calculations
   - Safe arithmetic operations (overflow-safe)
+  - Advanced math operations (liquidity calculations, ratios)
 
-### 3. Account Utils Library (`libs/account-utils`)
+### 5. Account Utils Library (`libs/account-utils`)
 - **Purpose**: Account management and validation utilities
-- **Dependencies**: `common` (path dependency), `anchor-lang`
+- **Dependencies**: `common`, `crypto-primitives` (both path dependencies)
 - **Provides**:
   - PDA (Program Derived Address) creation with validation
   - Account validation utilities
   - Account data serialization/deserialization helpers
   - Account space validation
+  - **Advanced cryptographic features** (using crypto-primitives):
+    - Advanced user PDAs with crypto-generated seeds
+    - Vault PDA creation using crypto address derivation
+    - Account validation with cryptographic proofs
+    - Security token generation for account operations
 
-### 4. Main Solana Program (`programs/my-solana-program`)
+### 6. Main Solana Program (`programs/my-solana-program`)
 - **Purpose**: The actual Solana program using the utility libraries
-- **Dependencies**: `account-utils`, `math-utils` (both path dependencies)
-- **Note**: Also gets `common` transitively through the other dependencies
+- **Dependencies**: `account-utils`, `math-utils`, `common` (all path dependencies)
+- **Transitive Dependencies**: 
+  - Gets `math-primitives` transitively through `math-utils` (shared depth-2 dependency)
+  - Gets `crypto-primitives` transitively through `account-utils` (isolated depth-2 dependency) but NEVER directly imports it
 - **Features**:
   - Program state initialization
-  - User account creation
+  - User account creation with advanced crypto features
   - Token transfers with fee calculations
 
 ## Key Features Demonstrated
 
-### Nested Path Dependencies
-- The main program depends on `account-utils` and `math-utils`
-- Both utility libraries depend on `common`
-- This creates a dependency tree where `common` is shared transitively
+### Nested Path Dependencies (Including Depth-2)
+- The main program depends on `account-utils`, `math-utils`, and `common`
+- `math-utils` depends on both `common` and `math-primitives`
+- `account-utils` depends on both `common` and `crypto-primitives`
+- `math-primitives` and `crypto-primitives` depend on `common`
+- This creates **two different depth-2 dependency chains**:
+  1. **Shared**: `program → math-utils → math-primitives → common`
+  2. **Isolated**: `account-utils → crypto-primitives → common` (only account-utils uses crypto-primitives)
+
+### Isolated vs Shared Dependencies
+- **Shared dependency**: `math-primitives` is used by `math-utils` and transitively by the main program
+- **Isolated dependency**: `crypto-primitives` is ONLY used by `account-utils` - never directly by the main program or other libraries
+- This demonstrates real-world patterns where some deep dependencies are shared across the codebase while others are isolated to specific modules
 
 ### Shared Error Handling
 - All libraries use the `CommonError` type from the `common` library

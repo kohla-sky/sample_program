@@ -1,13 +1,12 @@
 [package]
-name = "math-utils"
+name = "math-primitives"
 version = "0.1.0"
-description = "Mathematical utilities for Solana programs"
+description = "Primitive mathematical operations and constants for Solana programs"
 edition = "2021"
 
 [dependencies]
-# Path dependencies on our utility libraries
+# Path dependency on our common library
 common = { path = "../common" }
-math-primitives = { path = "../math-primitives" }
 solana-program = { workspace = true }
 thiserror = { workspace = true }
 borsh = { workspace = true } 

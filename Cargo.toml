@@ -2,6 +2,8 @@
 members = [
     "programs/my-solana-program",
     "libs/common",
+    "libs/crypto-primitives",
+    "libs/math-primitives",
     "libs/math-utils", 
     "libs/account-utils",
 ]
