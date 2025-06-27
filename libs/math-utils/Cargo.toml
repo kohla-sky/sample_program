@@ -1,0 +1,12 @@
+[package]
+name = "math-utils"
+version = "0.1.0"
+description = "Mathematical utilities for Solana programs"
+edition = "2021"
+
+[dependencies]
+# Path dependency on our common library
+common = { path = "../common" }
+solana-program = { workspace = true }
+thiserror = { workspace = true }
+borsh = { workspace = true } 

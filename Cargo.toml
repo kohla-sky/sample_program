@@ -1,0 +1,17 @@
+[workspace]
+members = [
+    "programs/my-solana-program",
+    "libs/common",
+    "libs/math-utils", 
+    "libs/account-utils",
+]
+
+resolver = "2"
+
+[workspace.dependencies]
+# Solana dependencies
+solana-program = "~1.14.0"
+
+# Common dependencies
+thiserror = "1.0"
+borsh = "0.9" 

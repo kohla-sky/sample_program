@@ -1,0 +1,29 @@
+[package]
+name = "my-solana-program"
+version = "0.1.0"
+description = "Sample Solana program with nested path dependencies"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "my_solana_program"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+solana-program = { workspace = true }
+borsh = { workspace = true }
+thiserror = { workspace = true }
+
+# Path dependencies - these reference our local utility crates
+common = { path = "../../libs/common" }
+account-utils = { path = "../../libs/account-utils" }
+math-utils = { path = "../../libs/math-utils" }
+
+[dev-dependencies]
+solana-program-test = "~1.14.0" 

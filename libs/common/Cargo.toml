@@ -1,0 +1,10 @@
+[package]
+name = "common"
+version = "0.1.0"
+description = "Common utilities shared across the project"
+edition = "2021"
+
+[dependencies]
+thiserror = { workspace = true }
+solana-program = { workspace = true }
+borsh = { workspace = true } 
